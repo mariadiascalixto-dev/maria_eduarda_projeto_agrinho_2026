@@ -286,4 +286,103 @@ body {
   .nav { gap: 0.75rem; }
   .nav a { font-size: 0.85rem; }
   .hero { padding: 4rem 0; }
+
+public/script.js
+// Ano atual no rodapé
+document.getElementById("year").textContent = new Date().getFullYear();
+// Animação dos cards ao aparecer na tela
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  },
+  { threshold: 0.15 }
+);
+document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+// Quiz
+const perguntas = [
+  {
+    q: "O que é agricultura sustentável?",
+    opcoes: [
+      "Produzir o máximo possível, sem se preocupar com o meio ambiente.",
+      "Produzir alimentos preservando os recursos naturais.",
+      "Plantar apenas em estufas fechadas.",
+    ],
+    correta: 1,
+  },
+  {
+    q: "Qual prática ajuda a manter o solo fértil?",
+    opcoes: [
+      "Rotação de culturas",
+      "Uso intenso de agrotóxicos",
+      "Queimar a vegetação",
+    ],
+    correta: 0,
+  },
+  {
+    q: "Qual tecnologia ajuda a economizar água na lavoura?",
+    opcoes: [
+      "Irrigação por gotejamento",
+      "Inundar o terreno todos os dias",
+      "Regar somente à noite e à vontade",
+    ],
+    correta: 0,
+  },
+];
+const form = document.getElementById("quiz-form");
+const result = document.getElementById("quiz-result");
+function renderQuiz() {
+  form.innerHTML = "";
+  result.hidden = true;
+  result.innerHTML = "";
+  perguntas.forEach((p, i) => {
+    const bloco = document.createElement("div");
+    bloco.className = "quiz__question";
+    bloco.innerHTML = `
+      <h3>${i + 1}. ${p.q}</h3>
+      <div class="quiz__options">
+        ${p.opcoes
+          .map(
+            (op, j) => `
+          <label class="quiz__option">
+            <input type="radio" name="q${i}" value="${j}" />
+            <span>${op}</span>
+          </label>`
+          )
+          .join("")}
+      </div>
+    `;
+    form.appendChild(bloco);
+  });
+  const acoes = document.createElement("div");
+  acoes.className = "quiz__actions";
+  acoes.innerHTML = `<button type="submit" class="btn">Ver resultado</button>`;
+  form.appendChild(acoes);
 }
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  let acertos = 0;
+  perguntas.forEach((p, i) => {
+    const escolha = form.querySelector(`input[name="q${i}"]:checked`);
+    if (escolha && Number(escolha.value) === p.correta) acertos++;
+  });
+  const total = perguntas.length;
+  let msg = "";
+  if (acertos === total) msg = "🌟 Excelente! Você é uma defensora do planeta!";
+  else if (acertos >= total / 2) msg = "🌱 Muito bem! Você está no caminho certo.";
+  else msg = "💡 Continue estudando — todo gesto sustentável conta!";
+  result.innerHTML = `
+    <h3>Você acertou ${acertos} de ${total}</h3>
+    <p>${msg}</p>
+    <button type="button" class="btn" id="quiz-reset" style="margin-top:1rem;">Refazer quiz</button>
+  `;
+  result.hidden = false;
+  result.scrollIntoView({ behavior: "smooth", block: "center" });
+  document.getElementById("quiz-reset").addEventListener("click", renderQuiz);
+});
+renderQuiz();
+
